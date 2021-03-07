@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import idv.ckt.blog.dto.Article;
+import idv.ckt.blog.params.ArticleQueryParameter;
 import idv.ckt.blog.utils.TimeUtil;
 
 public class ArticleBO {
@@ -23,25 +24,30 @@ public class ArticleBO {
 		}
 	}
 
-	public static List<Article> getArticlesByKeyword(String keyword) {
-		List<Article> articles = new ArrayList<>();
-
+	public static List<Article> getArticlesByParam(ArticleQueryParameter param) {
 		try {
+			List<Article> articles = new ArrayList<>();
+
+			String keyword = param.getKeyword();
+			String orderBy = param.getOrderBy();
+			String sortRule = param.getSortRule();
+
 			for (int i = 0; i < 5; i++) {
 				Article article = new Article();
 
 				article.setId(i);
-				article.setTitle("Story " + i);
-				article.setContent("This is test article No." + i);
+				article.setTitle(keyword);
+				article.setContent(orderBy + "-" + sortRule);
 				article.setDate(TimeUtil.getCurrTimestamp());
 
 				articles.add(article);
 			}
+
+			return articles;
 		} catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
-
-		return articles;
 	}
 
 	public static void createArticle(Article article) {
