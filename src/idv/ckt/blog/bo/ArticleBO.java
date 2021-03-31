@@ -1,78 +1,46 @@
 package idv.ckt.blog.bo;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import idv.ckt.blog.dao.ArticleDAO;
 import idv.ckt.blog.dto.Article;
+import idv.ckt.blog.exception.ConflictException;
+import idv.ckt.blog.exception.NotFoundException;
 import idv.ckt.blog.params.ArticleQueryParameter;
-import idv.ckt.blog.utils.TimeUtil;
 
+@Service
 public class ArticleBO {
-	public static Article getArticleById(long id) {
-		try {
-			Article article = new Article();
+	@Autowired
+	private ArticleDAO articleDAO;
 
-			article.setId(id);
-			article.setTitle("Story");
-			article.setContent("This is a test article.");
-			article.setDate(TimeUtil.getCurrTimestamp());
+	public Article createArticle(Article article) {
+		boolean isIdDuplicated = articleDAO.find(article.getId()).isPresent();
 
-			return article;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+		if (isIdDuplicated) {
+			throw new ConflictException("The id of article is duplicated.");
 		}
+
+		return articleDAO.insert(article);
 	}
 
-	public static List<Article> getArticlesByParam(ArticleQueryParameter param) {
-		try {
-			List<Article> articles = new ArrayList<>();
-
-			String keyword = param.getKeyword();
-			String orderBy = param.getOrderBy();
-			String sortRule = param.getSortRule();
-
-			for (int i = 0; i < 5; i++) {
-				Article article = new Article();
-
-				article.setId(i);
-				article.setTitle(keyword);
-				article.setContent(orderBy + "-" + sortRule);
-				article.setDate(TimeUtil.getCurrTimestamp());
-
-				articles.add(article);
-			}
-
-			return articles;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+	public Article getArticle(long id) {
+		return articleDAO.find(id).orElseThrow(() -> new NotFoundException("Can't find article."));
 	}
 
-	public static void createArticle(Article article) {
-		try {
-			article.setId(123);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public Article replaceArticle(long id, Article newArticle) {
+		Article oldArticle = getArticle(id);
+		return articleDAO.replace(oldArticle.getId(), newArticle);
 	}
 
-	public static void replaceArticleById(long id, Article article) {
-		try {
-			article.setTitle("Story");
-			article.setContent("This is a test article.");
-			article.setDate(TimeUtil.getCurrTimestamp());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public void deleteArticle(long id) {
+		Article article = getArticle(id);
+		articleDAO.delete(article.getId());
 	}
 
-	public static void deleteArticleById(long id) {
-		try {
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public List<Article> getArticles(ArticleQueryParameter param) {
+		return articleDAO.find(param);
 	}
 }
